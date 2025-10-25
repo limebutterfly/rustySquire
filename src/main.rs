@@ -28,7 +28,7 @@ impl LongData {
         println!("processing file {}",filename);
         let mut file_data = LongData::new(filename);
         for line in BufReader::new(File::open(file_path).expect("could not open file.")).lines().skip(filetype.skip) {
-            let line_a: Vec<String> = line.unwrap().splitn(filetype.ncols,"\t").map(|s| s.to_string()).collect();
+            let line_a: Vec<String> = line.unwrap().split("\t").map(|s| s.to_string()).collect();
             if line_a.len() < filetype.ncols {continue;}
             let rowid = line_a[filetype.rowid_col].parse::<String>().unwrap();
             let value = line_a[filetype.value_col].parse::<f32>().unwrap_or_else(|_| 0.0);
