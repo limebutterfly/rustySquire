@@ -29,7 +29,7 @@ impl LongData {
         let mut file_data = LongData::new(filename);
         for line in BufReader::new(File::open(file_path).expect("could not open file.")).lines().skip(filetype.skip) {
             let line_a: Vec<String> = line.unwrap().split("\t").map(|s| s.to_string()).collect();
-            if line_a.len() < filetype.ncols {continue;}
+            if line_a.len() < filetype.ncols {println!("line {:?} does not have at least {} columns", line_a, filetype.ncols); continue;}
             let rowid = line_a[filetype.rowid_col].parse::<String>().unwrap();
             let value = line_a[filetype.value_col].parse::<f32>().unwrap_or_else(|_| 0.0);
             let mut metadata : Vec<String> = vec!["".parse().unwrap(); filetype.metadata_cols.len()];
@@ -260,8 +260,8 @@ fn main() {
     let dir_path;
     if args.len() < 2 {
         println!("Usage: {} <directory_path>", args[0]);
-        //        exit(1);
-        dir_path = Path::new("../output/GSE87631");
+                exit(1);
+        //dir_path = Path::new("../output/GSE87631");
         /*dir_path = Path::new("test_directory");
         let test_counts = FileDefinition {
             postfix: "_A.txt".parse().unwrap(),
@@ -304,10 +304,10 @@ fn main() {
         skip: 1,
         ncols: 17
     };
-    println!("processing subFcounts");
-    aggregate(&dir_path, sub_f_counts).print_wide(BufWriter::new(File::create(format!("{}.subFcounts.tsv", dir_path.display())).unwrap()));
     println!("processing refGenecounts");
     aggregate(&dir_path, ref_gene_counts).print_wide(BufWriter::new(File::create(format!("{}.refGenecounts.tsv", dir_path.display())).unwrap()));
+    println!("processing subFcounts");
+    aggregate(&dir_path, sub_f_counts).print_wide(BufWriter::new(File::create(format!("{}.subFcounts.tsv", dir_path.display())).unwrap()));
     println!("processing TEcounts");
     aggregate(&dir_path, te_counts).print_wide(BufWriter::new(File::create(format!("{}.TEcounts.tsv", dir_path.display())).unwrap()));
     println!("done.")
