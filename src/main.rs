@@ -309,7 +309,7 @@ fn main() {
         postfix: "_refGenecounts.txt".parse().unwrap(),
         rowid_col: 3,
         metadata_cols: vec!(0,1,2),
-        value_col: 4,
+        value_col: 6,
         skip: 0,
         ncols: 7
     };
