@@ -203,11 +203,13 @@ impl WideData {
         }
         output.write(self.colids.join("\t").as_bytes()).unwrap();
         output.write("\n".as_bytes()).unwrap();
+        println!("wrote {} column ids", self.colids.len());
+        println!("writing {} value columns", self.values.len());
         for i in 0..self.rowids.len() {
             output.write(self.rowids[i].as_bytes()).unwrap();
             output.write("\t".as_bytes()).unwrap();
             output.write(self.metadata[i].join("\t").as_bytes()).unwrap();
-            if self.metadata[i].len() == 1 {
+            if self.metadata[i].len() > 0 {
                 output.write("\t".as_bytes()).unwrap();
             }
             for j in 0..self.colids.len() {
@@ -306,6 +308,7 @@ fn main() {
     };
     println!("processing refGenecounts");
     aggregate(&dir_path, ref_gene_counts).print_wide(BufWriter::new(File::create(format!("{}.refGenecounts.tsv", dir_path.display())).unwrap()));
+    exit(0);
     println!("processing subFcounts");
     aggregate(&dir_path, sub_f_counts).print_wide(BufWriter::new(File::create(format!("{}.subFcounts.tsv", dir_path.display())).unwrap()));
     println!("processing TEcounts");
