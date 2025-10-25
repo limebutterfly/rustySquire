@@ -223,23 +223,6 @@ impl WideData {
     }
 }
 
-fn read_file(file_path: &PathBuf, filename: String, filetype: &FileDefinition) -> LongData {
-    println!("processing file {}",filename);
-    let mut file_data = LongData::new(filename);
-    for line in BufReader::new(File::open(file_path).expect("could not open file.")).lines().skip(filetype.skip) {
-        let line_a: Vec<String> = line.unwrap().splitn(filetype.ncols,"\t").map(|s| s.to_string()).collect();
-        if line_a.len() < filetype.ncols {continue;}
-        let rowid = line_a[filetype.rowid_col].parse::<String>().unwrap();
-        let value = line_a[filetype.value_col].parse::<f32>().unwrap_or_else(|_| 0.0);
-        let mut metadata : Vec<String> = vec!["".parse().unwrap(); filetype.metadata_cols.len()];
-        for i in 0..filetype.metadata_cols.len() {
-            metadata[i] = line_a[filetype.metadata_cols[i]].parse::<String>().unwrap();
-        }
-        file_data.add_row(rowid, metadata, value);
-    }
-    return file_data;
-}
-
 fn aggregate(dir_path: &Path, filetype: FileDefinition) -> WideData {
     let mut output_data = WideData::new();
     let mut lastfile: Option<thread::JoinHandle<LongData>> = None;
@@ -247,25 +230,25 @@ fn aggregate(dir_path: &Path, filetype: FileDefinition) -> WideData {
         let upath = path.unwrap();
         let filename = upath.file_name().into_string().unwrap();
         if filename.len() > filetype.postfix.len() && filename[filename.len()-filetype.postfix.len()..filename.len()].eq(&filetype.postfix) {
+
+            let filename = filename[0..filename.len()-filetype.postfix.len()].parse().unwrap();
+            // first fire off the new file to be read in in a differen thread
+            let newfile = LongData::read_file(&upath.path(), filename, filetype.clone());
+            // then actually merge the last file.
             match lastfile {
                 Some(_) => {
                     let mut long_data = lastfile.unwrap().join().unwrap();
                     output_data.add_row_data(&mut long_data);
-                    lastfile = None;
                 }
                 None => {}
             }
-            let filename = filename[0..filename.len()-filetype.postfix.len()].parse().unwrap();
-            lastfile = Some(LongData::read_file(&upath.path(), filename, filetype.clone()));
-            //let mut row_data = read_file();
-            //output_data.add_row_data(&mut row_data);
+            lastfile = Some(newfile);
         }
     }
     match lastfile {
         Some(_) => {
             let mut long_data = lastfile.unwrap().join().unwrap();
             output_data.add_row_data(&mut long_data);
-            lastfile = None;
         }
         None => {}
     }
